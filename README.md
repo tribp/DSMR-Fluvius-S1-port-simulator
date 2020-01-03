@@ -30,7 +30,7 @@ Since a 'ESP32' microcontroller would be the perfect candidate for **reading** t
 - RS422: is a 'balanced signal (+ & -) with same voltage levels as RS 485. The difference with RS485 is that it is not a 'bus' with addressable devices like RS485, but only for 'point to point'. Advandage is that we can use a standard RS485 level converter like [RS485 module](https://nl.aliexpress.com/item/32682660246.html?spm=a2g0s.9042311.0.0.1cde4c4dELnNA3)
 - RJ12
   <img src="./images/RJ12_pins.png" width="800px">
-- S1 Protocol : HDLC. Only the message format of HDLC is used. This simply comes down to the fact that every telegram starts and stops with **0x0F**, AKA 'tilde' **~**. Practically we don't even need a specific 'HDLC' arduino library! We can avoid all of this and just make sure that every 'telegram' starts and stops with a tilde.(0x0F)
+- S1 Protocol : HDLC. Only the message format of HDLC is used. This simply comes down to the fact that every telegram starts and stops with **0x7E**, AKA 'tilde' **~**. Practically we don't even need a specific 'HDLC' arduino library! We can avoid all of this and just make sure that every 'telegram' starts and stops with a tilde.(0x0F)
 
 ### 2.2 S1 telegram - Key figures
 
@@ -45,12 +45,12 @@ Since a 'ESP32' microcontroller would be the perfect candidate for **reading** t
   - Telegram - rate:
     - Fsampling = 2600 Hz
     - 1 telegram each 1/2600Hz = 384 us
-- Telegram message definition (see all details pag 10 - 16)
+- Telegram message definition (see all details pag 10 - 16 of eMUCS standard)
 
 **Telegram Defenition Summary**
 
 ```
-E-MUCS Frame
+E-MUCS Frame = 45 bytes
  *  Flag          = 1 byte
  *  Frame Format  = 2 bytes
  *  Address Field = 1 byte
@@ -104,7 +104,9 @@ E-MUCS Frame
 ### 2.3 components
 
 - [esp32](https://nl.aliexpress.com/item/32799253567.html?spm=a2g0s.9042311.0.0.27424c4d9gviD9)
-- [RS485 module](https://nl.aliexpress.com/item/32682660246.html?spm=a2g0s.9042311.0.0.1cde4c4dELnNA3) Not needed for this simulator!
+- [RS485 module](https://nl.aliexpress.com/item/32682660246.html?spm=a2g0s.9042311.0.0.1cde4c4dELnNA3)
+
+Not needed for this simulator!
 
 ## 3 Concept
 
@@ -123,7 +125,9 @@ UART = Universal Asynchronous Receiver Decoder
       - 8N1 = 8 bit - no parity bit used - 1 stop bit
         - remark: 1 start bit = defacto needed.
 
-### 3.2 Protocol
+### 3.2 Protocol HDLC - - "Layer 2 of the OSI model"
+
+In this case "much about nothing" since we only use the HDLC Frame format principle **- every telegram starts and ends with a tilde character (0x7E) -**
 
 Note:
 
@@ -135,7 +139,7 @@ Timing between telegrams: 384 us.
 Start byte **~**: (see under)
 
 - Start bit: 'high to low' and takes 0.5us (start @second division for green)
-- message **'start FLAG'** = 0xOF = '01111110'
+- message **'start FLAG'** = 0x7E (01111110) => startbit '0' + '01111110' + stopbit '0'
 - stop bit: 'low to high' and takes 0.5us
 
 <img src="./images/S1_telegram_detail.png" width="800px">
@@ -144,7 +148,7 @@ Start byte **~**: (see under)
 
 Arduino source file can be changed to modify:
 
-The standard [source file]("https://github.com/tribp/DSMR-Fluvius-S1-port-simulator/blob/master/src/esp32_DSMR_S1_tx.ino") sends a 'perfect 50Hz - 230V RMS - sinewave' with a 'real-life' smart meter interval at 384us.
+The standard [source file](https://github.com/tribp/DSMR-Fluvius-S1-port-simulator/blob/master/src/esp32_DSMR_S1_tx.ino) sends a 'perfect 50Hz - 230V RMS - sinewave' with a 'real-life' smart meter interval at 384us.
 
 ### Modifing timing between telegrams
 
@@ -168,4 +172,5 @@ The standard [source file]("https://github.com/tribp/DSMR-Fluvius-S1-port-simula
 Info only usefull when modifying TX signal in order to know what DFT will result at receiver.
 
 - [An Intuitive Discrete Fourier Transform Tutorial](http://practicalcryptography.com/miscellaneous/machine-learning/intuitive-guide-discrete-fourier-transform/)
+- [DFT Step by step](https://www.youtube.com/watch?v=mkGsMWi_j4Q)
 - [DSMR-Fluvius-S1-Reader]() todo
